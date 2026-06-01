@@ -1,0 +1,22 @@
+<script type="text/x-template" id="tpl-status-badge">
+    <span
+        class="status-wrapper"
+        @mouseenter="hover = true"
+        @mouseleave="hover = false"
+    >
+        <span v-if="qty === 0" class="status-danger">
+            ⛔ Kosong
+        </span>
+        <span v-else-if="qty < safety" class="status-warning">
+            ⚠️ Menipis
+        </span>
+        <span v-else class="status-success">
+            ✅ Aman
+        </span>
+        <span
+            v-if="hover"
+            class="status-tooltip"
+            v-html="note"
+        ></span>
+    </span>
+</script>

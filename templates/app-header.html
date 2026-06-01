@@ -1,0 +1,52 @@
+<script type="text/x-template" id="tpl-app-header">
+    <header class="navbar">
+        <div class="nav-brand">
+            <img
+                src="assets/img/Logo UT.png"
+                alt="Logo Universitas Terbuka"
+                class="nav-logo"
+            >
+            <div>
+                <strong>SITTA UT 3.0</strong>
+                <small>Sistem Informasi Tiras dan Transaksi Bahan Ajar (SITTA)</small>
+            </div>
+        </div>
+
+        <nav class="nav-menu">
+            <button
+                :class="{ active: activeTab === 'dashboard' }"
+                @click="changeTab('dashboard')"
+            >
+                Dashboard
+            </button>
+            <button
+                :class="{ active: activeTab === 'stok' }"
+                @click="changeTab('stok')"
+            >
+                Stok Bahan Ajar
+            </button>
+            <button
+                :class="{ active: activeTab === 'tracking' }"
+                @click="changeTab('tracking')"
+            >
+                Tracking DO
+            </button>
+            <button
+                :class="{ active: activeTab === 'order' }"
+                @click="changeTab('order')"
+            >
+                Pemesanan
+            </button>
+        </nav>
+
+        <div class="nav-account">
+            <div v-if="user" class="nav-user">
+                <strong>{{ user.nama }}</strong>
+                <small>{{ user.role }} | {{ user.lokasi }}</small>
+            </div>
+            <button class="logout-btn" @click="logout">
+                Logout
+            </button>
+        </div>
+    </header>
+</script>

@@ -1,0 +1,117 @@
+<script type="text/x-template" id="tpl-do-tracking">
+    <section>
+        <section class="page-header">
+            <div>
+                <span class="upgrade-tag">Vue Component: &lt;do-tracking&gt;</span>
+                <h1>Tracking Delivery Order</h1>
+                <p>
+                    Cari berdasarkan nomor DO atau NIM. Tekan Enter untuk mencari
+                    dan Esc untuk mereset pencarian.
+                </p>
+            </div>
+            <button class="primary-btn" @click="$emit('open-order')">
+                Tambah Delivery Order
+            </button>
+        </section>
+
+        <section class="tracking-layout">
+            <article class="form-card">
+                <h2>Cari Tracking</h2>
+                <form @submit.prevent="searchTracking">
+                    <label>Nomor DO atau NIM</label>
+                    <input
+                        v-model="searchTerm"
+                        type="text"
+                        placeholder="Contoh: DO2025-0001 atau 123456789"
+                        @keyup.esc="resetSearch"
+                    >
+                    <button type="submit" class="primary-btn full-btn">
+                        Cari Tracking
+                    </button>
+                </form>
+                <p v-if="watcherMessage" class="watcher-message">
+                    {{ watcherMessage }}
+                </p>
+                <div class="package-box">
+                    <strong>Daftar DO tersedia:</strong>
+                    <ul>
+                        <li
+                            v-for="item in trackingList"
+                            :key="item.nomorDO"
+                        >
+                            {{ item.nomorDO }} - {{ item.nim }} - {{ item.nama }}
+                        </li>
+                    </ul>
+                </div>
+            </article>
+
+            <article v-if="selectedTracking" class="tracking-card">
+                <h2>Detail Tracking Pengiriman</h2>
+                <div class="result-grid">
+                    <div
+                        v-for="(value, label) in trackingInfo"
+                        :key="label"
+                        class="result-item"
+                    >
+                        <span>{{ label }}</span>
+                        <strong>{{ value }}</strong>
+                    </div>
+                    <div class="result-item">
+                        <span>Tanggal Kirim</span>
+                        <strong>{{ selectedTracking.tanggalKirim | tanggal-indo }}</strong>
+                    </div>
+                    <div class="result-item">
+                        <span>Total Harga</span>
+                        <strong>{{ selectedTracking.total | rupiah }}</strong>
+                    </div>
+                </div>
+
+                <div class="progress-area">
+                    <p>Progress Pengiriman</p>
+                    <div class="progress-bar">
+                        <div
+                            class="progress-fill"
+                            :style="{ width: progressValue(selectedTracking.status) + '%' }"
+                        >
+                            {{ progressValue(selectedTracking.status) }}%
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-box">
+                    <h3>Riwayat Perjalanan</h3>
+                    <ul class="timeline-list">
+                        <li
+                            v-for="(item, index) in selectedTracking.perjalanan"
+                            :key="index"
+                        >
+                            <span class="timeline-time">
+                                {{ item.waktu | tanggal-jam-indo }}
+                            </span>
+                            <p>{{ item.keterangan }}</p>
+                        </li>
+                    </ul>
+                </div>
+
+                <form
+                    class="progress-form"
+                    @submit.prevent="submitProgress"
+                >
+                    <label>Tambah Status Progress</label>
+                    <input
+                        v-model="progressText"
+                        type="text"
+                        placeholder="Masukkan keterangan progress lalu tekan Enter"
+                    >
+                    <button type="submit" class="primary-btn">
+                        Tambah Progress
+                    </button>
+                </form>
+            </article>
+
+            <article v-else class="empty-state">
+                Masukkan nomor DO atau NIM untuk melihat detail tracking.
+            </article>
+        </section>
+    </section>
+</script>

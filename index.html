@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SITTA UT 3.0</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.7.16/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <div id="app" v-cloak>
+        <app-header
+            :active-tab="tab"
+            :user="user"
+            @change-tab="setTab"
+            @logout="logout"
+        ></app-header>
+
+        <main class="page-container">
+            <section v-show="tab === 'dashboard'">
+                <section class="hero-card">
+                    <span class="upgrade-tag">Update SITTA UT 3.0</span>
+                    <h1>Selamat Datang, {{ user ? user.nama : 'Pengguna' }}</h1>
+                    <h2>Sistem Informasi Pemesanan dan Tracking Bahan Ajar</h2>
+                    <p>
+                        Versi 3.0 menerapkan Vue Component, Vue Template, custom element,
+                        filter formatting, computed property, watcher, serta event handler
+                        mouse dan keyboard.
+                    </p>
+                </section>
+
+                <section class="stat-grid dashboard-stat-grid">
+                    <stat-card
+                        label="Total Data Stok"
+                        :value="state.stok.length"
+                    ></stat-card>
+                    <stat-card
+                        label="Perlu Re-order"
+                        :value="reorderCount"
+                    ></stat-card>
+                    <stat-card
+                        label="Delivery Order"
+                        :value="trackingCount"
+                    ></stat-card>
+                </section>
+
+                <section class="menu-grid">
+                    <article
+                        class="menu-card"
+                        @click="setTab('stok')"
+                    >
+                        <h2>Stok Bahan Ajar</h2>
+                        <p>
+                            Kelola daftar stok, filter, sort, tooltip catatan,
+                            tambah, edit, dan hapus data bahan ajar.
+                        </p>
+                    </article>
+
+                    <article
+                        class="menu-card"
+                        @click="setTab('tracking')"
+                    >
+                        <h2>Tracking Delivery Order</h2>
+                        <p>
+                            Cari DO atau NIM, lihat progress pengiriman,
+                            dan tambahkan riwayat perjalanan.
+                        </p>
+                    </article>
+
+                    <article
+                        class="menu-card"
+                        @click="setTab('order')"
+                    >
+                        <h2>Pemesanan Bahan Ajar</h2>
+                        <p>
+                            Buat Delivery Order baru dengan nomor otomatis,
+                            pilihan ekspedisi, paket, dan total harga.
+                        </p>
+                    </article>
+                </section>
+            </section>
+
+            <section v-show="tab === 'stok'">
+                <ba-stock-table
+                    :items="state.stok"
+                    :upbjj-list="state.upbjjList"
+                    :kategori-list="state.kategoriList"
+                    @create="openCreateStock"
+                    @edit="openEditStock"
+                    @delete="deleteStock"
+                ></ba-stock-table>
+            </section>
+
+            <section v-show="tab === 'tracking'">
+                <do-tracking
+                    :tracking="state.tracking"
+                    @open-order="setTab('order')"
+                    @add-progress="addProgress"
+                ></do-tracking>
+            </section>
+
+            <section v-show="tab === 'order'">
+                <order-form
+                    :next-do="nextDONumber"
+                    :paket-list="state.paket"
+                    :pengiriman-list="state.pengirimanList"
+                    @created="handleNewOrder"
+                    @cancel="setTab('tracking')"
+                ></order-form>
+            </section>
+        </main>
+
+        <app-modal
+            v-if="stockModal.open"
+            :title="stockModal.mode === 'create' ? 'Tambah Bahan Ajar' : 'Edit Bahan Ajar'"
+            @close="closeStockModal"
+        >
+            <form
+                class="modal-form"
+                @submit.prevent="saveStock"
+                @keydown.enter.prevent="saveStock"
+            >
+                <div class="form-grid">
+                    <div>
+                        <label>Kode Mata Kuliah</label>
+                        <input v-model.trim="stockForm.kode" type="text" required>
+                    </div>
+                    <div>
+                        <label>Nama Mata Kuliah</label>
+                        <input v-model.trim="stockForm.judul" type="text" required>
+                    </div>
+                    <div>
+                        <label>Kategori</label>
+                        <select v-model="stockForm.kategori" required>
+                            <option value="">Pilih kategori</option>
+                            <option
+                                v-for="kategori in state.kategoriList"
+                                :key="kategori"
+                                :value="kategori"
+                            >
+                                {{ kategori }}
+                            </option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>UT-Daerah</label>
+                        <select v-model="stockForm.upbjj" required>
+                            <option value="">Pilih UT-Daerah</option>
+                            <option
+                                v-for="upbjj in state.upbjjList"
+                                :key="upbjj"
+                                :value="upbjj"
+                            >
+                                {{ upbjj }}
+                            </option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Lokasi Rak</label>
+                        <input v-model.trim="stockForm.lokasiRak" type="text" required>
+                    </div>
+                    <div>
+                        <label>Harga</label>
+                        <input v-model.number="stockForm.harga" type="number" min="1" required>
+                    </div>
+                    <div>
+                        <label>Jumlah Stok</label>
+                        <input v-model.number="stockForm.qty" type="number" min="0" required>
+                    </div>
+                    <div>
+                        <label>Safety Stock</label>
+                        <input v-model.number="stockForm.safety" type="number" min="0" required>
+                    </div>
+                </div>
+                <label>Catatan HTML</label>
+                <textarea
+                    v-model="stockForm.catatanHTML"
+                    placeholder="Contoh: <em>Edisi 2026</em>"
+                ></textarea>
+                <div class="button-row">
+                    <button type="button" class="light-btn" @click="closeStockModal">
+                        Batal
+                    </button>
+                    <button type="submit" class="primary-btn">
+                        Simpan Data
+                    </button>
+                </div>
+                <small class="keyboard-hint">
+                    Tekan Enter untuk menyimpan data.
+                </small>
+            </form>
+        </app-modal>
+    </div>
+
+    <div id="template-host"></div>
+
+    <script src="js/services/auth.js"></script>
+    <script src="js/services/api.js"></script>
+    <script src="js/components/status-badge.js"></script>
+    <script src="js/components/stat-card.js"></script>
+    <script src="js/components/app-header.js"></script>
+    <script src="js/components/app-modal.js"></script>
+    <script src="js/components/stock-table.js"></script>
+    <script src="js/components/do-tracking.js"></script>
+    <script src="js/components/order-form.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

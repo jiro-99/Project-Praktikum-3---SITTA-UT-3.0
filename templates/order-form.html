@@ -1,0 +1,92 @@
+<script type="text/x-template" id="tpl-order-form">
+    <section>
+        <section class="page-header">
+            <div>
+                <span class="upgrade-tag">Vue Component: &lt;order-form&gt;</span>
+                <h1>Pemesanan Bahan Ajar</h1>
+                <p>
+                    Tambahkan Delivery Order baru. Nomor DO dibuat otomatis
+                    berdasarkan tahun berjalan dan sequence number.
+                </p>
+            </div>
+        </section>
+
+        <section class="form-card order-form-card">
+            <form @submit.prevent="submitOrder">
+                <label>Nomor DO</label>
+                <input v-model="form.nomorDO" type="text" readonly>
+
+                <div class="form-grid">
+                    <div>
+                        <label>NIM</label>
+                        <input v-model.trim="form.nim" type="text" required>
+                    </div>
+                    <div>
+                        <label>Nama</label>
+                        <input v-model.trim="form.nama" type="text" required>
+                    </div>
+                    <div>
+                        <label>Ekspedisi</label>
+                        <select v-model="form.ekspedisi" required>
+                            <option value="">Pilih ekspedisi</option>
+                            <option
+                                v-for="item in pengirimanList"
+                                :key="item.kode"
+                                :value="item.kode"
+                            >
+                                {{ item.nama }} - {{ item.estimasi }}
+                            </option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Tanggal Kirim</label>
+                        <input v-model="form.tanggalKirim" type="date" required>
+                    </div>
+                </div>
+
+                <label>Paket Bahan Ajar</label>
+                <select v-model="form.paket" required>
+                    <option value="">Pilih paket</option>
+                    <option
+                        v-for="item in paketList"
+                        :key="item.kode"
+                        :value="item.kode"
+                    >
+                        {{ item.kode }} - {{ item.nama }}
+                    </option>
+                </select>
+
+                <div v-if="selectedPaket" class="package-box">
+                    <strong>Detail Paket:</strong>
+                    <p>{{ selectedPaket.kode }} - {{ selectedPaket.nama }}</p>
+                    <ul>
+                        <li v-for="isi in selectedPaket.isi" :key="isi">
+                            {{ isi }}
+                        </li>
+                    </ul>
+                    <p>
+                        <strong>Total Harga:</strong>
+                        {{ totalHarga | rupiah }}
+                    </p>
+                    <p>
+                        <strong>Tanggal Kirim:</strong>
+                        {{ form.tanggalKirim | tanggal-indo }}
+                    </p>
+                </div>
+
+                <p v-if="watcherMessage" class="watcher-message">
+                    {{ watcherMessage }}
+                </p>
+
+                <div class="button-row">
+                    <button type="button" class="light-btn" @click="$emit('cancel')">
+                        Batal
+                    </button>
+                    <button type="submit" class="primary-btn">
+                        Simpan Delivery Order
+                    </button>
+                </div>
+            </form>
+        </section>
+    </section>
+</script>

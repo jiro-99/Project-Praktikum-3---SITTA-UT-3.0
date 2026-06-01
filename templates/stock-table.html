@@ -1,0 +1,139 @@
+<script type="text/x-template" id="tpl-stock-table">
+    <section>
+        <section class="page-header">
+            <div>
+                <span class="upgrade-tag">Vue Component: &lt;ba-stock-table&gt;</span>
+                <h1>Informasi Stok Bahan Ajar</h1>
+                <p>
+                    Data stok dikelola melalui list rendering, computed property,
+                    watcher, filter, sort, serta event mouse dan keyboard.
+                </p>
+            </div>
+            <button class="primary-btn" @click="$emit('create')">
+                Tambah Bahan Ajar
+            </button>
+        </section>
+
+        <section class="stat-grid">
+            <stat-card label="Data Ditampilkan" :value="filteredItems.length"></stat-card>
+            <stat-card label="Stok Menipis" :value="totalMenipis"></stat-card>
+            <stat-card label="Stok Kosong" :value="totalKosong"></stat-card>
+        </section>
+
+        <section class="filter-card">
+            <div class="filter-grid">
+                <div>
+                    <label>Cari Data</label>
+                    <input
+                        v-model="keyword"
+                        type="text"
+                        placeholder="Kode, judul, atau UPBJJ"
+                    >
+                </div>
+                <div>
+                    <label>UT-Daerah</label>
+                    <select v-model="filterUpbjj">
+                        <option value="">Semua UT-Daerah</option>
+                        <option
+                            v-for="upbjj in upbjjList"
+                            :key="upbjj"
+                            :value="upbjj"
+                        >
+                            {{ upbjj }}
+                        </option>
+                    </select>
+                </div>
+                <div v-show="filterUpbjj">
+                    <label>Kategori Mata Kuliah</label>
+                    <select v-model="filterKategori">
+                        <option value="">Semua Kategori</option>
+                        <option
+                            v-for="kategori in filteredKategoriList"
+                            :key="kategori"
+                            :value="kategori"
+                        >
+                            {{ kategori }}
+                        </option>
+                    </select>
+                </div>
+                <div>
+                    <label>Sort Data</label>
+                    <select v-model="sortBy">
+                        <option value="judul">Judul</option>
+                        <option value="qty">Stok</option>
+                        <option value="harga">Harga</option>
+                    </select>
+                </div>
+            </div>
+            <div class="check-row">
+                <input id="reorder" v-model="filterReorder" type="checkbox">
+                <label for="reorder">
+                    Tampilkan hanya stok kurang dari safety atau stok kosong
+                </label>
+            </div>
+            <button class="light-btn" @click="resetFilter">
+                Reset Filter
+            </button>
+            <p v-if="watcherMessage" class="watcher-message">
+                {{ watcherMessage }}
+            </p>
+        </section>
+
+        <section class="table-card">
+            <table>
+                <thead>
+                    <tr>
+                        <th>No</th>
+                        <th>Kode / Judul</th>
+                        <th>Kategori</th>
+                        <th>UT-Daerah</th>
+                        <th>Lokasi Rak</th>
+                        <th>Harga</th>
+                        <th>Stok</th>
+                        <th>Safety</th>
+                        <th>Status</th>
+                        <th>Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr
+                        v-for="(item, index) in filteredItems"
+                        :key="item.kode + item.upbjj"
+                    >
+                        <td>{{ index + 1 }}</td>
+                        <td>
+                            <strong>{{ item.kode }}</strong><br>
+                            <span>{{ item.judul }}</span>
+                        </td>
+                        <td v-text="item.kategori"></td>
+                        <td>{{ item.upbjj }}</td>
+                        <td>{{ item.lokasiRak }}</td>
+                        <td>{{ item.harga | rupiah }}</td>
+                        <td>{{ item.qty | buah }}</td>
+                        <td>{{ item.safety | buah }}</td>
+                        <td>
+                            <status-badge
+                                :qty="Number(item.qty)"
+                                :safety="Number(item.safety)"
+                                :note="item.catatanHTML"
+                            ></status-badge>
+                        </td>
+                        <td>
+                            <div class="action-row">
+                                <button class="action-btn" @click="$emit('edit', item)">
+                                    Edit
+                                </button>
+                                <button class="danger-btn" @click="$emit('delete', item)">
+                                    Hapus
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <small class="keyboard-hint">
+                Arahkan mouse ke status untuk melihat catatan bahan ajar.
+            </small>
+        </section>
+    </section>
+</script>
